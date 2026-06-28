@@ -131,17 +131,57 @@ class Note {
       (m) => '💬 ${m[1]}',
     );
 
-    // List items
+    // List items — if the item contains a checkbox, the checkbox handling
+    // below will replace the <input> tag; otherwise use a bullet
     text = text.replaceAllMapped(
       RegExp(r'<li[^>]*>(.*?)</li>', caseSensitive: false),
       (m) => '• ${m[1]}',
     );
 
+    // Checkboxes (checked / unchecked) — must come after <li> so the
+    // <input> is already inside the plain-text list item
+    text = text.replaceAllMapped(
+      RegExp(
+        r'<input[^>]*type\s*=\s*"checkbox"[^>]*checked[^>]*/?>',
+        caseSensitive: false,
+      ),
+      (m) => '☑',
+    );
+    text = text.replaceAllMapped(
+      RegExp(
+        r"<input[^>]*type\s*=\s*'checkbox'[^>]*checked[^>]*/?>",
+        caseSensitive: false,
+      ),
+      (m) => '☑',
+    );
+    text = text.replaceAllMapped(
+      RegExp(r'<input[^>]*type\s*=\s*"checkbox"[^>]*/?>', caseSensitive: false),
+      (m) => '☐',
+    );
+    text = text.replaceAllMapped(
+      RegExp(r"<input[^>]*type\s*=\s*'checkbox'[^>]*/?>", caseSensitive: false),
+      (m) => '☐',
+    );
+
     // Replace <br> with space
     text = text.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), ' ');
 
+    // Replace media delete buttons before stripping tags
+    // dotAll: true allows . to match newlines in multi-line HTML
+    text = text.replaceAllMapped(
+      RegExp(
+        r'<button[^>]*asset-delete-btn[^>]*>.*?</button>',
+        caseSensitive: false,
+        dotAll: true,
+      ),
+      (m) => '',
+    );
+
     // Remove remaining HTML tags
     text = text.replaceAll(RegExp(r'<[^>]+>'), ' ');
+
+    // Remove leftover × (multiplication sign) from delete buttons
+    // text = text.replaceAll('', '');
 
     // Decode HTML entities
     text = text
@@ -152,15 +192,16 @@ class Note {
     text = text.replaceAll(RegExp(r'\s+'), ' ').trim();
 
     // Build final preview with media hints
-    final hasImages = content.contains('<img');
-    final hasVideos = content.contains('<video');
-    final hasAudio = content.contains('<audio');
+    final hasImages = content.contains('img');
+    final hasVideos = content.contains('video');
+    final hasAudio = content.contains('audio');
     final List<String> mediaHints = [];
-    if (hasImages) mediaHints.add('📷 image');
-    if (hasVideos) mediaHints.add('🎥 video');
-    if (hasAudio) mediaHints.add('🎤 audio');
+    if (hasImages) mediaHints.add('📷');
+    if (hasVideos) mediaHints.add('🎥');
+    if (hasAudio) mediaHints.add('🎤');
 
     final buffer = StringBuffer();
+
     if (text.isNotEmpty) {
       buffer.write(text.length > 80 ? '${text.substring(0, 80)}…' : text);
     }
@@ -168,6 +209,7 @@ class Note {
       if (buffer.isNotEmpty) buffer.write(' · ');
       buffer.write(mediaHints.join(' '));
     }
+
     return buffer.isEmpty ? 'No content yet…' : buffer.toString();
   }
 }

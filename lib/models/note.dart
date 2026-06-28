@@ -62,14 +62,37 @@ class Note {
     };
   }
 
+  bool get hasImages => content.contains('<img');
+  bool get hasVideos => content.contains('<video');
+  bool get hasAudio => content.contains('<audio');
+  bool get hasMedia =>
+      mediaPaths.isNotEmpty || hasImages || hasVideos || hasAudio;
+
   // Get a formatted preview of the note content for card display
   String getFormattedPreview() {
     if (content.isEmpty) return 'No content yet…';
 
-    // Remove base64 data URIs (images/videos/audio embedded as data:)
-    var text = content
-        .replaceAll(RegExp(r'data:[^;]+;base64,[A-Za-z0-9+/=\s]+'), '')
-        .trim();
+    // Remove base64 data URIs (images/videos/audio embedded as data:) safely without RegExp to avoid StackOverflow on large files
+    var text = content;
+    int dataIdx = text.indexOf('data:');
+    while (dataIdx != -1) {
+      int endIdx = -1;
+      for (int i = dataIdx; i < text.length; i++) {
+        final char = text[i];
+        if (char == '"' || char == "'" || char == ' ' || char == '>') {
+          endIdx = i;
+          break;
+        }
+      }
+      if (endIdx != -1) {
+        text = text.replaceRange(dataIdx, endIdx, '');
+      } else {
+        text = text.substring(0, dataIdx);
+        break;
+      }
+      dataIdx = text.indexOf('data:');
+    }
+    text = text.trim();
 
     // Decode Unicode HTML escapes (e.g. \u003c -> <, \u003e -> >)
     text = text.replaceAllMapped(

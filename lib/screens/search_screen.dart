@@ -278,7 +278,7 @@ class _SearchResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = note.title.isEmpty ? 'Untitled Note' : note.title;
-    final hasMedia = note.mediaPaths.isNotEmpty;
+    final hasMedia = note.hasMedia;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -331,8 +331,8 @@ class _SearchResultCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 3,
+                                horizontal: 8,
+                                vertical: 4,
                               ),
                               decoration: BoxDecoration(
                                 color: const Color(
@@ -343,24 +343,30 @@ class _SearchResultCard extends StatelessWidget {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.perm_media_rounded,
-                                    size: 11,
-                                    color: const Color(
-                                      0xFF8B5CF6,
-                                    ).withValues(alpha: 0.7),
-                                  ),
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    '${note.mediaPaths.length}',
-                                    style: TextStyle(
-                                      color: const Color(
-                                        0xFF8B5CF6,
-                                      ).withValues(alpha: 0.7),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
+                                  if (note.hasImages)
+                                    const Icon(
+                                      Icons.image_rounded,
+                                      size: 11,
+                                      color: Color(0xFF8B5CF6),
                                     ),
-                                  ),
+                                  if (note.hasImages &&
+                                      (note.hasVideos || note.hasAudio))
+                                    const SizedBox(width: 4),
+                                  if (note.hasVideos)
+                                    const Icon(
+                                      Icons.videocam_rounded,
+                                      size: 11,
+                                      color: Color(0xFF8B5CF6),
+                                    ),
+                                  if ((note.hasImages || note.hasVideos) &&
+                                      note.hasAudio)
+                                    const SizedBox(width: 4),
+                                  if (note.hasAudio)
+                                    const Icon(
+                                      Icons.audio_file_rounded,
+                                      size: 11,
+                                      color: Color(0xFF8B5CF6),
+                                    ),
                                 ],
                               ),
                             ),

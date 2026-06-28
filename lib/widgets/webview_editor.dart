@@ -106,7 +106,7 @@ class _WebViewEditorState extends State<WebViewEditor> {
 
   #editor {
     min-height: 100%;
-    padding: 4px 0;
+    padding: 20px !important;
     outline: none;
     word-wrap: break-word;
     overflow-wrap: break-word;

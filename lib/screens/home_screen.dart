@@ -152,38 +152,7 @@ class _PremiumNoteCard extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  String _getContentPreview() {
-    // Remove base64 data URIs (images/videos/audio embedded as data:)
-    var text = note.content
-        .replaceAll(RegExp(r'data:[^;]+;base64,[A-Za-z0-9+/=\s]+'), '')
-        .replaceAll(RegExp(r'<[^>]*>'), ' ')
-        .replaceAll(RegExp(r'&nbsp;'), ' ')
-        .replaceAll(RegExp(r'&[a-zA-Z]+;'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
-
-    // Build a short description
-    final hasImages = note.content.contains('<img');
-    final hasVideos = note.content.contains('<video');
-    final hasAudio = note.content.contains('<audio');
-
-    final List<String> mediaHints = [];
-    if (hasImages) mediaHints.add('📷 image');
-    if (hasVideos) mediaHints.add('🎥 video');
-    if (hasAudio) mediaHints.add('🎤 audio');
-
-    final buffer = StringBuffer();
-    if (text.isNotEmpty) {
-      buffer.write(text.length > 60 ? '${text.substring(0, 60)}…' : text);
-    }
-    if (mediaHints.isNotEmpty) {
-      if (buffer.isNotEmpty) buffer.write('  ·  ');
-      buffer.write(mediaHints.join('  '));
-    }
-
-    final result = buffer.toString();
-    return result.isEmpty ? 'No content yet…' : result;
-  }
+  String _getContentPreview() => note.getFormattedPreview();
 
   @override
   Widget build(BuildContext context) {

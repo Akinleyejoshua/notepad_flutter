@@ -48,11 +48,21 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
   late AnimationController _saveButtonController;
   late Animation<double> _saveButtonScale;
 
+  String _decodeHtmlEscapes(String input) {
+    var text = input;
+    // Decode Unicode HTML escapes (e.g. \u003c -> <, \u003e -> >)
+    text = text.replaceAllMapped(
+      RegExp(r'\\u([0-9a-fA-F]{4})'),
+      (m) => String.fromCharCode(int.parse(m[1]!, radix: 16)),
+    );
+    return text;
+  }
+
   @override
   void initState() {
     super.initState();
     _titleController.text = widget.note?.title ?? '';
-    _htmlContent = widget.note?.content ?? '';
+    _htmlContent = _decodeHtmlEscapes(widget.note?.content ?? '');
     _mediaPaths = List<String>.from(widget.note?.mediaPaths ?? []);
     _titleController.addListener(_onContentChanged);
 
@@ -78,7 +88,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
   void _onContentChanged() {
     final originalTitle = widget.note?.title ?? '';
     final originalContent = widget.note?.content ?? '';
-    final changed = _titleController.text != originalTitle ||
+    final changed =
+        _titleController.text != originalTitle ||
         _htmlContent != originalContent ||
         _mediaPaths.length != (widget.note?.mediaPaths.length ?? 0);
     if (changed != _hasChanges) {
@@ -158,7 +169,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     final bytes = await File(path).readAsBytes();
     final base64Data = base64Encode(bytes);
 
-    final imgHtml = '''
+    final imgHtml =
+        '''
       <div class="media-container" contenteditable="false">
         <img src="data:$mimeType;base64,$base64Data" style="max-width:100%;border-radius:12px;" />
         <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
@@ -174,7 +186,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     final bytes = await File(path).readAsBytes();
     final base64Data = base64Encode(bytes);
 
-    final videoHtml = '''
+    final videoHtml =
+        '''
       <div class="media-container" contenteditable="false">
         <video src="data:$mimeType;base64,$base64Data" controls style="max-width:100%;border-radius:12px;"></video>
         <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
@@ -190,7 +203,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     final bytes = await File(path).readAsBytes();
     final base64Data = base64Encode(bytes);
 
-    final audioHtml = '''
+    final audioHtml =
+        '''
       <div class="audio-recording" contenteditable="false">
         <audio src="data:audio/mpeg;base64,$base64Data" controls style="width:100%;"></audio>
         <button class="asset-delete-btn" onclick="this.parentElement.remove();" 
@@ -263,10 +277,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     } catch (e) {
       debugPrint('Recording start error: $e');
       if (mounted) {
-        Provider.of<UiProvider>(context, listen: false).showToast(
-          'Failed to start recording',
-          type: ToastType.error,
-        );
+        Provider.of<UiProvider>(
+          context,
+          listen: false,
+        ).showToast('Failed to start recording', type: ToastType.error);
       }
     }
   }
@@ -286,10 +300,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
       if (path != null && path.isNotEmpty) {
         await _insertAudioIntoEditor(path);
         if (mounted) {
-          Provider.of<UiProvider>(context, listen: false).showToast(
-            'Recording saved & inserted',
-            type: ToastType.success,
-          );
+          Provider.of<UiProvider>(
+            context,
+            listen: false,
+          ).showToast('Recording saved & inserted', type: ToastType.success);
         }
       }
     } catch (e) {
@@ -321,7 +335,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
   // ── Save ──
 
   Future<void> _saveDocument() async {
-    _saveButtonController.forward().then((_) => _saveButtonController.reverse());
+    _saveButtonController.forward().then(
+      (_) => _saveButtonController.reverse(),
+    );
 
     // Get latest content from WebView
     if (_webController != null) {
@@ -348,11 +364,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
 
     if (!mounted) return;
 
-
     final ui = Provider.of<UiProvider>(context, listen: false);
 
-
-        if (_titleController.text.trim().isEmpty) {
+    if (_titleController.text.trim().isEmpty) {
       if (mounted) {
         ui.showToast(
           'Please enter some content for the note',
@@ -529,7 +543,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
 
               // Mode badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isEditMode
                       ? const Color(0xFFFEF3C7)
@@ -568,7 +585,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF111827).withValues(alpha: 0.25),
+                          color: const Color(
+                            0xFF111827,
+                          ).withValues(alpha: 0.25),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         ),
@@ -577,7 +596,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check_rounded, size: 18, color: Colors.white),
+                        Icon(
+                          Icons.check_rounded,
+                          size: 18,
+                          color: Colors.white,
+                        ),
                         SizedBox(width: 6),
                         Text(
                           'Save',
@@ -629,8 +652,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
           // Metadata row
           Row(
             children: [
-              Icon(Icons.access_time_rounded,
-                  size: 13, color: Colors.grey.shade400),
+              Icon(
+                Icons.access_time_rounded,
+                size: 13,
+                color: Colors.grey.shade400,
+              ),
               const SizedBox(width: 4),
               Text(
                 _getDateLabel(),
@@ -642,8 +668,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
               ),
               if (_mediaPaths.isNotEmpty) ...[
                 const SizedBox(width: 12),
-                Icon(Icons.attach_file_rounded,
-                    size: 13, color: Colors.grey.shade400),
+                Icon(
+                  Icons.attach_file_rounded,
+                  size: 13,
+                  color: Colors.grey.shade400,
+                ),
                 const SizedBox(width: 3),
                 Text(
                   '${_mediaPaths.length} attachment${_mediaPaths.length > 1 ? 's' : ''}',
@@ -665,8 +694,18 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     final now = DateTime.now();
     final date = widget.note?.lastEdited ?? now;
     final months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
@@ -698,8 +737,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFEF4444)
-                          .withValues(alpha: _pulseAnimation.value * 0.5),
+                      color: const Color(
+                        0xFFEF4444,
+                      ).withValues(alpha: _pulseAnimation.value * 0.5),
                       blurRadius: 8,
                       spreadRadius: 2,
                     ),
@@ -731,8 +771,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
               GestureDetector(
                 onTap: _stopRecording,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEF4444),
                     borderRadius: BorderRadius.circular(8),
@@ -824,10 +866,22 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                 _toolbarDivider(),
 
                 // Headings
-                _HeadingBtn(label: 'H1', onTap: () => _execCommand('formatBlock', 'h1')),
-                _HeadingBtn(label: 'H2', onTap: () => _execCommand('formatBlock', 'h2')),
-                _HeadingBtn(label: 'H3', onTap: () => _execCommand('formatBlock', 'h3')),
-                _HeadingBtn(label: '¶', onTap: () => _execCommand('formatBlock', 'p')),
+                _HeadingBtn(
+                  label: 'H1',
+                  onTap: () => _execCommand('formatBlock', 'h1'),
+                ),
+                _HeadingBtn(
+                  label: 'H2',
+                  onTap: () => _execCommand('formatBlock', 'h2'),
+                ),
+                _HeadingBtn(
+                  label: 'H3',
+                  onTap: () => _execCommand('formatBlock', 'h3'),
+                ),
+                _HeadingBtn(
+                  label: '¶',
+                  onTap: () => _execCommand('formatBlock', 'p'),
+                ),
                 _toolbarDivider(),
 
                 // Lists & Quote
@@ -929,7 +983,8 @@ class _ToolbarBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = accentColor ??
+    final color =
+        accentColor ??
         (isAccent ? const Color(0xFF111111) : const Color(0xFF6B7280));
     final bgColor = isAccent
         ? (accentColor ?? const Color(0xFF111111)).withValues(alpha: 0.08)
@@ -969,9 +1024,7 @@ class _HeadingBtn extends StatelessWidget {
         height: 36,
         margin: const EdgeInsets.symmetric(horizontal: 2),
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
         child: Text(
           label,
           style: const TextStyle(
@@ -1042,8 +1095,11 @@ class _PremiumMediaPickerSheet extends StatelessWidget {
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.add_rounded,
-                      size: 20, color: Colors.white),
+                  child: const Icon(
+                    Icons.add_rounded,
+                    size: 20,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 const Column(
@@ -1104,8 +1160,7 @@ class _PremiumMediaPickerSheet extends StatelessWidget {
             onTap: onAudioFile,
           ),
           _MediaOption(
-            icon:
-                isRecording ? Icons.stop_circle_rounded : Icons.mic_rounded,
+            icon: isRecording ? Icons.stop_circle_rounded : Icons.mic_rounded,
             label: isRecording ? 'Stop Recording' : 'Record Audio',
             subtitle: isRecording
                 ? 'Stop the current recording'
@@ -1181,8 +1236,11 @@ class _MediaOption extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios_rounded,
-                  size: 14, color: Color(0xFFD1D5DB)),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: Color(0xFFD1D5DB),
+              ),
             ],
           ),
         ),

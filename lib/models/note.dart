@@ -64,13 +64,19 @@ class Note {
 
   // Get a formatted preview of the note content for card display
   String getFormattedPreview() {
+    if (content.isEmpty) return 'No content yet…';
+
     // Remove base64 data URIs (images/videos/audio embedded as data:)
     var text = content
         .replaceAll(RegExp(r'data:[^;]+;base64,[A-Za-z0-9+/=\s]+'), '')
         .trim();
 
-    // Convert HTML tags to formatted text representations
-    // Headings
+    // Decode Unicode HTML escapes (e.g. \u003c -> <, \u003e -> >)
+    text = text.replaceAllMapped(
+      RegExp(r'\\u([0-9a-fA-F]{4})'),
+      (m) => String.fromCharCode(int.parse(m[1]!, radix: 16)),
+    );
+
     text = text.replaceAllMapped(
       RegExp(r'<h1[^>]*>(.*?)</h1>', caseSensitive: false),
       (m) => 'H1: ${m[1]}',
@@ -82,6 +88,12 @@ class Note {
     text = text.replaceAllMapped(
       RegExp(r'<h3[^>]*>(.*?)</h3>', caseSensitive: false),
       (m) => 'H3: ${m[1]}',
+    );
+
+    // Paragraphs - extract text content
+    text = text.replaceAllMapped(
+      RegExp(r'<p[^>]*>(.*?)</p>', caseSensitive: false),
+      (m) => m[1]!.trim(),
     );
 
     // Bold/Strong
@@ -101,6 +113,9 @@ class Note {
       RegExp(r'<li[^>]*>(.*?)</li>', caseSensitive: false),
       (m) => '• ${m[1]}',
     );
+
+    // Replace <br> with space
+    text = text.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), ' ');
 
     // Remove remaining HTML tags
     text = text.replaceAll(RegExp(r'<[^>]+>'), ' ');
@@ -130,7 +145,6 @@ class Note {
       if (buffer.isNotEmpty) buffer.write(' · ');
       buffer.write(mediaHints.join(' '));
     }
-
     return buffer.isEmpty ? 'No content yet…' : buffer.toString();
   }
 }

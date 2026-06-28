@@ -1,0 +1,53 @@
+name: notepad
+description: "A hybrid rich-text voice notepad application."
+publish_to: 'none'
+version: 1.0.0+1
+
+# 🌟 This is the exact block the compiler is looking for:
+environment:
+  sdk: '>=3.12.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  webview_flutter: ^4.10.0
+  webview_flutter_android: ^4.10.0
+  permission_handler: ^11.3.0
+  provider: ^6.1.2
+  shared_preferences: ^2.3.5
+  image_picker: ^1.1.2
+  file_picker: ^8.0.0
+  record: ^7.0.0
+  path_provider: ^2.1.1
+  
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_native_splash: ^2.4.4
+
+flutter:
+  uses-material-design: true
+
+  # 🌟 Add this exact configuration block:
+  fonts:
+    - family: Bricolage
+      fonts:
+        - asset: assets/fonts/BricolageGrotesque.ttf
+
+# 🎨 Native Splash Configuration Settings
+flutter_native_splash:
+  color: "#FFFFFF"               # Pure white background matching your app canvas
+  image: assets/images/logo.png  # Path to your app icon or brand asset logo
+  
+  # Platform-specific optimization overrides
+  android_12:
+    color: "#FFFFFF"
+    image: assets/images/logo.png
+    icon_background_color: "#FFFFFF"
+
+  ios: true
+  android: true

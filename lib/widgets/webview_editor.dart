@@ -176,12 +176,14 @@ class _WebViewEditorState extends State<WebViewEditor> {
   /* Media containers */
   .media-container {
     position: relative;
-    display: inline-block;
-    margin: 12px 0;
+    display: flex;
+    margin: 0px 0;
     max-width: 100%;
+    height: max-content;
+    min-height: max-content;
     border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow: hidden !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.00);
   }
 
   .media-container img {

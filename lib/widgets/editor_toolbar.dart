@@ -69,7 +69,7 @@ class _EditorToolbarState extends State<EditorToolbar> {
         <div class="media-container" contenteditable="false">
           <img src="data:$mimeType;base64,$base64" style="max-width:100%;border-radius:8px;" />
           <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
-        </div><br>
+        </div><br/>
       ''';
 
       final escapedHtml = jsonEncode(imgHtml);
@@ -97,7 +97,7 @@ class _EditorToolbarState extends State<EditorToolbar> {
         <div class="media-container" contenteditable="false">
           <video src="data:$mimeType;base64,$base64" controls style="max-width:100%;border-radius:8px;"></video>
           <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
-        </div><br>
+        </div><br/>
       ''';
 
       final escapedHtml = jsonEncode(videoHtml);
@@ -123,7 +123,7 @@ class _EditorToolbarState extends State<EditorToolbar> {
         <div class="media-container" contenteditable="false">
           <audio src="data:audio/mpeg;base64,$base64" controls style="width:100%;"></audio>
           <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
-        </div><br>
+        </div><br/>
       ''';
 
       final escapedHtml = jsonEncode(audioHtml);

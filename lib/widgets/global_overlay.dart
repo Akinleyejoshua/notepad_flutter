@@ -123,58 +123,61 @@ class _ToastWidgetState extends State<_ToastWidget>
       top: safeAreaTop,
       left: 16,
       right: 16,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: GestureDetector(
-            onTap: () =>
-                Provider.of<UiProvider>(context, listen: false).dismissToast(),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: _bgColor,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: _bgColor.withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(_icon, color: Colors.white, size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      widget.data.message,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Bricolage',
+      child: Material(
+        type: MaterialType.transparency,
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: GestureDetector(
+              onTap: () =>
+                  Provider.of<UiProvider>(context, listen: false).dismissToast(),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: _bgColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _bgColor.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Icon(_icon, color: Colors.white, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        widget.data.message,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Bricolage',
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                  const SizedBox(width: 4),
-                  GestureDetector(
-                    onTap: () => Provider.of<UiProvider>(
-                      context,
-                      listen: false,
-                    ).dismissToast(),
-                    child: const Icon(
-                      Icons.close_rounded,
-                      color: Colors.white,
-                      size: 18,
+                    const SizedBox(width: 4),
+                    GestureDetector(
+                      onTap: () => Provider.of<UiProvider>(
+                        context,
+                        listen: false,
+                      ).dismissToast(),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -222,14 +225,16 @@ class _LoadingOverlayState extends State<_LoadingOverlay>
   Widget build(BuildContext context) {
     final message = Provider.of<UiProvider>(context).loadingMessage;
 
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Container(
-        color: Colors.black.withValues(alpha: 0.3),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-          child: Center(
-            child: Container(
+    return Material(
+      type: MaterialType.transparency,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: Container(
+          color: Colors.black.withValues(alpha: 0.3),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+            child: Center(
+              child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 28),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -269,6 +274,7 @@ class _LoadingOverlayState extends State<_LoadingOverlay>
             ),
           ),
         ),
+      ),
       ),
     );
   }

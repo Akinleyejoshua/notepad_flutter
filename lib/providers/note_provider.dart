@@ -7,6 +7,8 @@ class NotesProvider extends ChangeNotifier {
   List<Note> _notes = [];
   String _searchQuery = '';
   static const String _storageKey = 'user_notepad_notes';
+  SharedPreferences? _prefs;
+  bool _isSaving = false;
 
   NotesProvider() {
     _loadNotesFromDisk(); // 🌟 Auto-hydrate local data cache on startup
@@ -21,8 +23,12 @@ class NotesProvider extends ChangeNotifier {
   List<Note> get filteredNotes {
     if (_searchQuery.isEmpty) return allNotes;
     return _notes.where((note) {
-      final titleMatch = note.title.toLowerCase().contains(_searchQuery.toLowerCase());
-      final contentMatch = note.content.toLowerCase().contains(_searchQuery.toLowerCase());
+      final titleMatch = note.title.toLowerCase().contains(
+        _searchQuery.toLowerCase(),
+      );
+      final contentMatch = note.content.toLowerCase().contains(
+        _searchQuery.toLowerCase(),
+      );
       return titleMatch || contentMatch;
     }).toList();
   }
@@ -61,7 +67,10 @@ class NotesProvider extends ChangeNotifier {
     if (index >= 0) {
       final note = _notes[index];
       final updatedPaths = [...note.mediaPaths, mediaPath];
-      _notes[index] = note.copyWith(mediaPaths: updatedPaths, lastEdited: DateTime.now());
+      _notes[index] = note.copyWith(
+        mediaPaths: updatedPaths,
+        lastEdited: DateTime.now(),
+      );
       _saveNotesToDisk();
       notifyListeners();
     }
@@ -76,8 +85,9 @@ class NotesProvider extends ChangeNotifier {
   Future<void> _loadNotesFromDisk() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      _prefs = prefs;
       final String? serializedData = prefs.getString(_storageKey);
-      
+
       if (serializedData != null) {
         final List<dynamic> decodedList = jsonDecode(serializedData);
         _notes = decodedList.map((item) => Note.fromJson(item)).toList();
@@ -90,12 +100,18 @@ class NotesProvider extends ChangeNotifier {
 
   // 💾 Disk Write Operation
   Future<void> _saveNotesToDisk() async {
+    if (_isSaving) return;
+    _isSaving = true;
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String serializedData = jsonEncode(_notes.map((n) => n.toMap()).toList());
-      await prefs.setString(_storageKey, serializedData);
+      _prefs ??= await SharedPreferences.getInstance();
+      final String serializedData = jsonEncode(
+        _notes.map((n) => n.toMap()).toList(),
+      );
+      await _prefs!.setString(_storageKey, serializedData);
     } catch (e) {
       debugPrint("Failed to write state changes to disk: $e");
+    } finally {
+      _isSaving = false;
     }
   }
 

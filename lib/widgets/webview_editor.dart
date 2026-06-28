@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -70,21 +71,9 @@ class _WebViewEditorState extends State<WebViewEditor> {
   }
 
   void _setContent(String content) {
-    // Escape for JS string
-    final escaped = content
-        .replaceAll('\\', '\\\\')
-        .replaceAll("'", "\\'")
-        .replaceAll('\n', '\\n')
-        .replaceAll('\r', '\\r');
-
-    _controller.runJavaScript('''
-      (function() {
-        var editor = document.getElementById('editor');
-        if (editor) {
-          editor.innerHTML = '$escaped';
-        }
-      })();
-    ''');
+    // Use jsonEncode for safe JS string handling (handles base64, special chars, etc.)
+    final jsonContent = jsonEncode(content);
+    _controller.runJavaScript('window.setEditorContent($jsonContent);');
   }
 
   String _buildEditorHtml() {

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/note.dart';
 import '../providers/note_provider.dart';
 import '../widgets/custom_modal.dart';
+import '../widgets/global_overlay.dart';
 import 'note_editor_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -39,7 +40,11 @@ class HomeScreen extends StatelessWidget {
                     ],
                   ),
                   child: const Center(
-                    child: Icon(Icons.note_add_sharp, size: 40, color: Color(0xFF9CA3AF)),
+                    child: Icon(
+                      Icons.note_add_sharp,
+                      size: 40,
+                      color: Color(0xFF9CA3AF),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -89,7 +94,7 @@ class _PremiumNoteCard extends StatelessWidget {
     await Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            NoteEditorScreen(note: note),
+            GlobalOverlay(child: NoteEditorScreen(note: note)),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(
             opacity: animation,
@@ -148,9 +153,36 @@ class _PremiumNoteCard extends StatelessWidget {
   }
 
   String _getContentPreview() {
-    final text = note.content.replaceAll(RegExp(r'<[^>]*>'), '').trim();
-    if (text.isEmpty) return 'No content yet…';
-    return text.length > 80 ? '${text.substring(0, 80)}…' : text;
+    // Remove base64 data URIs (images/videos/audio embedded as data:)
+    var text = note.content
+        .replaceAll(RegExp(r'data:[^;]+;base64,[A-Za-z0-9+/=\s]+'), '')
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll(RegExp(r'&nbsp;'), ' ')
+        .replaceAll(RegExp(r'&[a-zA-Z]+;'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    // Build a short description
+    final hasImages = note.content.contains('<img');
+    final hasVideos = note.content.contains('<video');
+    final hasAudio = note.content.contains('<audio');
+
+    final List<String> mediaHints = [];
+    if (hasImages) mediaHints.add('📷 image');
+    if (hasVideos) mediaHints.add('🎥 video');
+    if (hasAudio) mediaHints.add('🎤 audio');
+
+    final buffer = StringBuffer();
+    if (text.isNotEmpty) {
+      buffer.write(text.length > 60 ? '${text.substring(0, 60)}…' : text);
+    }
+    if (mediaHints.isNotEmpty) {
+      if (buffer.isNotEmpty) buffer.write('  ·  ');
+      buffer.write(mediaHints.join('  '));
+    }
+
+    final result = buffer.toString();
+    return result.isEmpty ? 'No content yet…' : result;
   }
 
   @override

@@ -76,9 +76,10 @@ class _ToastWidgetState extends State<_ToastWidget>
       begin: const Offset(0, -1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controller.forward();
   }
 
@@ -116,18 +117,21 @@ class _ToastWidgetState extends State<_ToastWidget>
 
   @override
   Widget build(BuildContext context) {
+    final double safeAreaTop = MediaQuery.of(context).padding.top + 12;
+
     return Positioned(
-      top: MediaQuery.of(context).padding.top + 12,
-      left: 20,
-      right: 20,
+      top: safeAreaTop,
+      left: 16,
+      right: 16,
       child: SlideTransition(
         position: _slideAnimation,
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: GestureDetector(
-            onTap: () => Provider.of<UiProvider>(context, listen: false).dismissToast(),
+            onTap: () =>
+                Provider.of<UiProvider>(context, listen: false).dismissToast(),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: _bgColor,
                 borderRadius: BorderRadius.circular(16),
@@ -140,9 +144,11 @@ class _ToastWidgetState extends State<_ToastWidget>
                 ],
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(_icon, color: Colors.white, size: 22),
-                  const SizedBox(width: 12),
+                  Icon(_icon, color: Colors.white, size: 20),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       widget.data.message,
@@ -152,9 +158,22 @@ class _ToastWidgetState extends State<_ToastWidget>
                         fontWeight: FontWeight.w600,
                         fontFamily: 'Bricolage',
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Icon(Icons.close_rounded, color: Colors.white70, size: 18),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: () => Provider.of<UiProvider>(
+                      context,
+                      listen: false,
+                    ).dismissToast(),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -186,9 +205,10 @@ class _LoadingOverlayState extends State<_LoadingOverlay>
       vsync: this,
       duration: const Duration(milliseconds: 250),
     );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controller.forward();
   }
 
@@ -277,12 +297,14 @@ class _AlertModalState extends State<_AlertModal>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.85,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controller.forward();
   }
 
@@ -323,7 +345,8 @@ class _AlertModalState extends State<_AlertModal>
     return FadeTransition(
       opacity: _fadeAnimation,
       child: GestureDetector(
-        onTap: () => Provider.of<UiProvider>(context, listen: false).dismissAlert(),
+        onTap: () =>
+            Provider.of<UiProvider>(context, listen: false).dismissAlert(),
         child: Container(
           color: Colors.black.withValues(alpha: 0.35),
           child: BackdropFilter(
@@ -393,8 +416,10 @@ class _AlertModalState extends State<_AlertModal>
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
-                            onPressed: () =>
-                                Provider.of<UiProvider>(context, listen: false).dismissAlert(),
+                            onPressed: () => Provider.of<UiProvider>(
+                              context,
+                              listen: false,
+                            ).dismissAlert(),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF111111),
                               foregroundColor: Colors.white,
@@ -449,12 +474,14 @@ class _ConfirmModalState extends State<_ConfirmModal>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _scaleAnimation = Tween<double>(begin: 0.85, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.85,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controller.forward();
   }
 
@@ -505,7 +532,9 @@ class _ConfirmModalState extends State<_ConfirmModal>
                           decoration: BoxDecoration(
                             color: widget.data.isDangerous
                                 ? const Color(0xFFEF4444).withValues(alpha: 0.1)
-                                : const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                                : const Color(
+                                    0xFFF59E0B,
+                                  ).withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
@@ -557,7 +586,9 @@ class _ConfirmModalState extends State<_ConfirmModal>
                                   onPressed: () => ui.resolveConfirm(false),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: const Color(0xFF6B7280),
-                                    side: const BorderSide(color: Color(0xFFE5E7EB)),
+                                    side: const BorderSide(
+                                      color: Color(0xFFE5E7EB),
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(14),
                                     ),

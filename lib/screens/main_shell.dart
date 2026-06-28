@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/app_header.dart';
 import '../widgets/bottom_nav_bar.dart';
+import '../widgets/global_overlay.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
 import 'note_editor_screen.dart';
@@ -42,16 +43,16 @@ class _MainShellState extends State<MainShell> {
     Navigator.of(context).push(
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-            const NoteEditorScreen(),
+            const GlobalOverlay(child: NoteEditorScreen()),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 1),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            )),
+            position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+                .animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  ),
+                ),
             child: child,
           );
         },
@@ -67,19 +68,13 @@ class _MainShellState extends State<MainShell> {
       body: Column(
         children: [
           // Header
-          AppHeader(
-            title: _headerTitle,
-            subtitle: _headerSubtitle,
-          ),
+          AppHeader(title: _headerTitle, subtitle: _headerSubtitle),
 
           // Content area
           Expanded(
             child: IndexedStack(
               index: _currentIndex,
-              children: const [
-                HomeScreen(),
-                SearchScreen(),
-              ],
+              children: const [HomeScreen(), SearchScreen()],
             ),
           ),
 

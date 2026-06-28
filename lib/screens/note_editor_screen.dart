@@ -347,7 +347,21 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     }
 
     if (!mounted) return;
+
+
     final ui = Provider.of<UiProvider>(context, listen: false);
+
+
+        if (_titleController.text.trim().isEmpty) {
+      if (mounted) {
+        ui.showToast(
+          'Please enter some content for the note',
+          type: ToastType.warning,
+        );
+      }
+      return;
+    }
+
     ui.showLoading(message: 'Saving note...');
 
     try {

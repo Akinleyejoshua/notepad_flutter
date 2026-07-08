@@ -166,53 +166,48 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
   }
 
   Future<void> _insertImageIntoEditor(String path, String mimeType) async {
-    final bytes = await File(path).readAsBytes();
-    final base64Data = base64Encode(bytes);
-
+    final savedPath = await _saveMediaToAppDirectory(path);
+    final fileUrl = Uri.file(savedPath).toString();
     final imgHtml =
         '''
       <div class="media-container" contenteditable="false">
-        <img src="data:$mimeType;base64,$base64Data" style="max-width:100%;border-radius:12px;" />
+        <img src="$fileUrl" style="max-width:100%;border-radius:12px;" />
         <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
       </div><br>
     ''';
-
-    setState(() => _mediaPaths.add(path));
+    setState(() => _mediaPaths.add(savedPath));
     _onContentChanged();
     _insertHtmlIntoEditor(imgHtml);
   }
 
   Future<void> _insertVideoIntoEditor(String path, String mimeType) async {
-    final bytes = await File(path).readAsBytes();
-    final base64Data = base64Encode(bytes);
-
+    final savedPath = await _saveMediaToAppDirectory(path);
+    final fileUrl = Uri.file(savedPath).toString();
     final videoHtml =
         '''
       <div class="media-container" contenteditable="false">
-        <video src="data:$mimeType;base64,$base64Data" controls style="max-width:100%;border-radius:12px;"></video>
-        <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
+        <video src="$fileUrl" controls style="max-width:100%;border-radius:12px;">
+          <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
+        </video>
       </div><br>
     ''';
-
-    setState(() => _mediaPaths.add(path));
+    setState(() => _mediaPaths.add(savedPath));
     _onContentChanged();
     _insertHtmlIntoEditor(videoHtml);
   }
 
   Future<void> _insertAudioIntoEditor(String path) async {
-    final bytes = await File(path).readAsBytes();
-    final base64Data = base64Encode(bytes);
-
+    final savedPath = await _saveMediaToAppDirectory(path);
+    final fileUrl = Uri.file(savedPath).toString();
     final audioHtml =
         '''
       <div class="audio-recording" contenteditable="false">
-        <audio src="data:audio/mpeg;base64,$base64Data" controls style="width:100%;"></audio>
-        <button class="asset-delete-btn" onclick="this.parentElement.remove();" 
-                style="position:relative;top:auto;right:auto;width:24px;height:24px;font-size:14px;flex-shrink:0;">×</button>
+        <audio src="$fileUrl" controls style="width:100%;">
+          <button class="asset-delete-btn" onclick="this.parentElement.remove();" style="position:relative;top:auto;right:auto;width:24px;height:24px;font-size:14px;flex-shrink:0;">×</button>
+        </audio>
       </div><br>
     ''';
-
-    setState(() => _mediaPaths.add(path));
+    setState(() => _mediaPaths.add(savedPath));
     _onContentChanged();
     _insertHtmlIntoEditor(audioHtml);
   }
@@ -1246,5 +1241,24 @@ class _MediaOption extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+Future<String> _saveMediaToAppDirectory(String sourcePath) async {
+  try {
+    final appDir = await getApplicationDocumentsDirectory();
+    final mediaDir = Directory('${appDir.path}/media');
+    if (!await mediaDir.exists()) {
+      await mediaDir.create(recursive: true);
+    }
+    final extension = sourcePath.split('.').last;
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final fileName = '$timestamp.$extension';
+    final destPath = '${mediaDir.path}/$fileName';
+    await File(sourcePath).copy(destPath);
+    return destPath;
+  } catch (e) {
+    debugPrint('Error saving media to app directory: $e');
+    return sourcePath; // Fallback to original path
   }
 }

@@ -67,7 +67,9 @@ class _WebViewEditorState extends State<WebViewEditor> {
           },
         ),
       )
-      ..loadHtmlString(_buildEditorHtml());
+      // Use a file:// baseUrl so that relative file references in the HTML
+      // (e.g. <img src="file:///.../media/123.jpg">) resolve correctly.
+      ..loadHtmlString(_buildEditorHtml(), baseUrl: 'file:///');
   }
 
   void _setContent(String content) {

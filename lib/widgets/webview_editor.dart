@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+// ignore: depend_on_referenced_packages
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 /// A premium WebView-based rich text editor using contenteditable HTML.
 /// This replaces the broken plain-TextField approach with real formatting.
@@ -30,7 +33,18 @@ class _WebViewEditorState extends State<WebViewEditor> {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.transparent)
+      ..setBackgroundColor(Colors.transparent);
+
+    // Enable file:// access on Android so local media (images, video, audio)
+    // stored in the app's documents directory can be loaded by the WebView.
+    if (!kIsWeb && _controller.platform is AndroidWebViewController) {
+      (_controller.platform as AndroidWebViewController)
+        ..setMediaPlaybackRequiresUserGesture(false)
+        ..setAllowFileAccess(true)
+        ..setAllowContentAccess(true);
+    }
+
+    _controller
       ..addJavaScriptChannel(
         'FlutterBridge',
         onMessageReceived: (message) {

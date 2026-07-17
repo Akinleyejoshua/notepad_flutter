@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 // ignore: depend_on_referenced_packages
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -80,10 +82,26 @@ class _WebViewEditorState extends State<WebViewEditor> {
             }
           },
         ),
-      )
-      // Use a file:// baseUrl so that relative file references in the HTML
-      // (e.g. <img src="file:///.../media/123.jpg">) resolve correctly.
-      ..loadHtmlString(_buildEditorHtml(), baseUrl: 'file:///');
+      );
+
+    // Write the editor HTML to a file and load via loadFile instead of
+    // loadHtmlString. This gives the page a file:// origin, which allows
+    // the WebView to load other file:// resources (images, video, audio)
+    // from the app's media directory.
+    _loadEditorFromFile();
+  }
+
+  Future<void> _loadEditorFromFile() async {
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final editorFile = File('${tempDir.path}/notepad_editor.html');
+      await editorFile.writeAsString(_buildEditorHtml());
+      await _controller.loadFile(editorFile.path);
+    } catch (e) {
+      debugPrint('Error loading editor HTML from file: $e');
+      // Fallback to loadHtmlString if file write fails
+      _controller.loadHtmlString(_buildEditorHtml(), baseUrl: 'file:///');
+    }
   }
 
   void _setContent(String content) {

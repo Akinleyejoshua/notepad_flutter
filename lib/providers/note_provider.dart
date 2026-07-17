@@ -23,12 +23,11 @@ class NotesProvider extends ChangeNotifier {
   List<Note> get filteredNotes {
     if (_searchQuery.isEmpty) return allNotes;
     return _notes.where((note) {
-      final titleMatch = note.title.toLowerCase().contains(
-        _searchQuery.toLowerCase(),
-      );
-      final contentMatch = note.content.toLowerCase().contains(
-        _searchQuery.toLowerCase(),
-      );
+      final query = _searchQuery.toLowerCase();
+      final titleMatch = note.title.toLowerCase().contains(query);
+      // Use searchableContent — strips asset refs (media://, file://, data:)
+      // so search is faster and only matches actual text content.
+      final contentMatch = note.searchableContent.toLowerCase().contains(query);
       return titleMatch || contentMatch;
     }).toList();
   }

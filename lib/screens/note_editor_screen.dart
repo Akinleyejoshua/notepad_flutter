@@ -12,6 +12,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../models/note.dart';
 import '../providers/note_provider.dart';
 import '../providers/ui_provider.dart';
+import '../utils/content_utils.dart';
 import '../widgets/custom_modal.dart';
 import '../widgets/webview_editor.dart';
 
@@ -31,8 +32,10 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
 
   WebViewController? _webController;
   String _htmlContent = '';
+  String _decodedOriginalContent = ''; // Decoded version for change detection
   List<String> _mediaPaths = [];
   bool _hasChanges = false;
+  bool _contentReady = false; // True once async content decode finishes
   bool get isEditMode => widget.note != null;
 
   // Recording state
@@ -62,9 +65,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
   void initState() {
     super.initState();
     _titleController.text = widget.note?.title ?? '';
-    _htmlContent = _decodeHtmlEscapes(widget.note?.content ?? '');
     _mediaPaths = List<String>.from(widget.note?.mediaPaths ?? []);
     _titleController.addListener(_onContentChanged);
+
+    // Load content: decode any media:// refs to full file:// URIs for display
+    _initContent();
 
     // Pulse animation for recording indicator
     _pulseController = AnimationController(
@@ -87,7 +92,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
 
   void _onContentChanged() {
     final originalTitle = widget.note?.title ?? '';
-    final originalContent = widget.note?.content ?? '';
+    final originalContent = _decodedOriginalContent.isNotEmpty
+        ? _decodedOriginalContent
+        : widget.note?.content ?? '';
     final changed =
         _titleController.text != originalTitle ||
         _htmlContent != originalContent ||
@@ -95,6 +102,24 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     if (changed != _hasChanges) {
       setState(() => _hasChanges = changed);
     }
+  }
+
+  /// Async init: decode media:// refs to file:// URIs for WebView display.
+  Future<void> _initContent() async {
+    final raw = _decodeHtmlEscapes(widget.note?.content ?? '');
+    final decoded = await ContentUtils.decodeContent(raw);
+    if (!mounted) return;
+    _htmlContent = decoded;
+    _decodedOriginalContent = decoded;
+    _contentReady = true;
+    // If the WebView controller is already ready, push decoded content
+    if (_webController != null) {
+      final jsonContent = jsonEncode(decoded);
+      await _webController!.runJavaScript(
+        'window.setEditorContent($jsonContent);',
+      );
+    }
+    if (mounted) setState(() {});
   }
 
   @override
@@ -374,13 +399,17 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     ui.showLoading(message: 'Saving note...');
 
     try {
+      // Encode content: replace full file:// URIs with short media:// refs
+      // so the DB stays lean and text search doesn't scan through long paths.
+      final encodedContent = await ContentUtils.encodeContent(_htmlContent);
+
       if (!mounted) return;
       final notesProvider = Provider.of<NotesProvider>(context, listen: false);
       final currentTitle = _titleController.text.trim();
       if (isEditMode) {
         final updatedNote = widget.note!.copyWith(
           title: currentTitle,
-          content: _htmlContent,
+          content: encodedContent,
           mediaPaths: _mediaPaths,
           lastEdited: DateTime.now(),
         );
@@ -389,7 +418,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
         final newNote = Note(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           title: currentTitle,
-          content: _htmlContent,
+          content: encodedContent,
           mediaPaths: _mediaPaths,
           lastEdited: DateTime.now(),
         );
@@ -474,6 +503,13 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                 },
                 onControllerReady: (controller) {
                   setState(() => _webController = controller);
+                  // If async decode already finished, push decoded content
+                  if (_contentReady && _htmlContent.isNotEmpty) {
+                    final jsonContent = jsonEncode(_htmlContent);
+                    controller.runJavaScript(
+                      'window.setEditorContent($jsonContent);',
+                    );
+                  }
                 },
               ),
             ),

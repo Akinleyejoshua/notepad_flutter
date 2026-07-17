@@ -1,8 +1,11 @@
+import '../utils/content_utils.dart';
+
 class Note {
   String id;
   String title;
-  String content; // Rich text content (HTML or Delta JSON)
-  List<String> mediaPaths; // Paths to imported media (images, videos, audio)
+  String
+  content; // Rich text content (HTML with media://filename.ext references)
+  List<String> mediaPaths; // Absolute paths to imported media on device storage
   DateTime lastEdited;
 
   Note({
@@ -61,6 +64,11 @@ class Note {
       'lastEdited': lastEdited.toIso8601String(),
     };
   }
+
+  /// Returns content with all asset references (media://, file://, data:)
+  /// stripped out, for fast text-only search without scanning through
+  /// long file paths or base64 blobs.
+  String get searchableContent => ContentUtils.stripAssetRefs(content);
 
   bool get hasImages => content.contains('<img');
   bool get hasVideos => content.contains('<video');

@@ -237,9 +237,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     final videoHtml =
         '''
       <div class="media-container" contenteditable="false">
-        <video src="$fileUrl" controls style="max-width:100%;border-radius:12px;">
-          <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
-        </video>
+        <video src="$fileUrl" controls style="max-width:100%;border-radius:12px;"></video>
+        <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
       </div><br>
     ''';
     setState(() => _mediaPaths.add(savedPath));

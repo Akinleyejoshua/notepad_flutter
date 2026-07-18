@@ -357,6 +357,27 @@ class _WebViewEditorState extends State<WebViewEditor> {
       sel.addRange(range);
     };
 
+    // Execute a formatting command, refocus editor, and report state
+    window.execFormatCommand = function(command, value) {
+      editor.focus();
+      document.execCommand(command, false, value || null);
+      reportFormatState();
+    };
+
+    // Toggle a block format: if already active, revert to <p>
+    window.toggleBlockFormat = function(tag) {
+      editor.focus();
+      var current = document.queryCommandValue('formatBlock').toLowerCase();
+      // Normalize: strip angle brackets if present
+      current = current.replace(/[<>]/g, '');
+      if (current === tag.toLowerCase()) {
+        document.execCommand('formatBlock', false, '<p>');
+      } else {
+        document.execCommand('formatBlock', false, '<' + tag + '>');
+      }
+      reportFormatState();
+    };
+
     // Query and report formatting state at cursor
     function reportFormatState() {
       try {

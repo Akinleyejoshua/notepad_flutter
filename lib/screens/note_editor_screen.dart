@@ -369,12 +369,21 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
 
   // ── Formatting Commands ──
 
+  /// Execute a simple formatting command (bold, italic, underline, etc.)
+  /// and immediately refresh toolbar state.
   void _execCommand(String command, [String? value]) {
     if (_webController == null) return;
     final valueArg = value != null ? "'$value'" : 'null';
     _webController!.runJavaScript(
-      "document.execCommand('$command', false, $valueArg); true;",
+      "window.execFormatCommand('$command', $valueArg); true;",
     );
+  }
+
+  /// Toggle a block-level format (h1, h2, h3, blockquote).
+  /// If the cursor is already in that format, reverts to paragraph.
+  void _execBlockCommand(String tag) {
+    if (_webController == null) return;
+    _webController!.runJavaScript("window.toggleBlockFormat('$tag'); true;");
   }
 
   // ── Save ──
@@ -929,20 +938,20 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                 ),
                 _toolbarDivider(),
 
-                // Headings
+                // Headings (toggle: tap again to revert to paragraph)
                 _HeadingBtn(
                   label: 'H1',
-                  onTap: () => _execCommand('formatBlock', 'h1'),
+                  onTap: () => _execBlockCommand('h1'),
                   isActive: _formatState['h1'] == true,
                 ),
                 _HeadingBtn(
                   label: 'H2',
-                  onTap: () => _execCommand('formatBlock', 'h2'),
+                  onTap: () => _execBlockCommand('h2'),
                   isActive: _formatState['h2'] == true,
                 ),
                 _HeadingBtn(
                   label: 'H3',
-                  onTap: () => _execCommand('formatBlock', 'h3'),
+                  onTap: () => _execBlockCommand('h3'),
                   isActive: _formatState['h3'] == true,
                 ),
                 _HeadingBtn(
@@ -966,7 +975,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                 ),
                 _ToolbarBtn(
                   icon: Icons.format_quote_rounded,
-                  onTap: () => _execCommand('formatBlock', 'blockquote'),
+                  onTap: () => _execBlockCommand('blockquote'),
                   tooltip: 'Quote',
                   isActive: _formatState['blockquote'] == true,
                 ),

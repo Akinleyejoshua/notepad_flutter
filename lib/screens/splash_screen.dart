@@ -23,7 +23,7 @@ class _CustomSplashScreenState extends State<CustomSplashScreen>
     // Fade animation
     _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 400),
     );
     _fadeAnimation = Tween<double>(
       begin: 0.0,
@@ -33,7 +33,7 @@ class _CustomSplashScreenState extends State<CustomSplashScreen>
     // Subtle scale animation for the logo
     _scaleController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 500),
     );
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _scaleController, curve: Curves.easeOutCubic),
@@ -46,7 +46,7 @@ class _CustomSplashScreenState extends State<CustomSplashScreen>
   }
 
   Future<void> _initializeAppLifecycle() async {
-    await Future.delayed(const Duration(milliseconds: 2200));
+    await Future.delayed(const Duration(milliseconds: 800));
 
     if (!mounted) return;
 
@@ -57,7 +57,7 @@ class _CustomSplashScreenState extends State<CustomSplashScreen>
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionDuration: const Duration(milliseconds: 300),
       ),
     );
   }

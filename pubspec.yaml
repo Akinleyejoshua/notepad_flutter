@@ -41,12 +41,10 @@ flutter:
 # 🎨 Native Splash Configuration Settings
 flutter_native_splash:
   color: "#FFFFFF"               # Pure white background matching your app canvas
-  image: assets/images/logo.png  # Path to your app icon or brand asset logo
   
   # Platform-specific optimization overrides
   android_12:
     color: "#FFFFFF"
-    image: assets/images/logo.png
     icon_background_color: "#FFFFFF"
 
   ios: true

@@ -38,6 +38,9 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
   bool _contentReady = false; // True once async content decode finishes
   bool get isEditMode => widget.note != null;
 
+  // Active formatting state from the WebView (bold, italic, alignment, etc.)
+  Map<String, bool> _formatState = {};
+
   // Recording state
   final AudioRecorder _recorder = AudioRecorder();
   bool _isRecording = false;
@@ -101,6 +104,29 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
         _mediaPaths.length != (widget.note?.mediaPaths.length ?? 0);
     if (changed != _hasChanges) {
       setState(() => _hasChanges = changed);
+    }
+  }
+
+  /// Sync _mediaPaths with the actual media elements in the editor DOM.
+  /// When users delete media via the × button in the editor, the DOM changes
+  /// but _mediaPaths was not updated. This method extracts file:// URIs from
+  /// the HTML content and rebuilds _mediaPaths accordingly.
+  void _syncMediaPathsFromContent(String htmlContent) {
+    final regex = RegExp(
+      r'file:///[^"\x27<>\s]+\.(jpg|jpeg|png|gif|webp|mp4|webm|m4a|mp3|wav|aac|ogg)',
+      caseSensitive: false,
+    );
+    final matches = regex.allMatches(htmlContent);
+    final newPaths = <String>{};
+    for (final match in matches) {
+      final uri = Uri.parse(match.group(0)!);
+      // Convert file:// URI back to a path
+      newPaths.add(uri.toFilePath());
+    }
+    if (newPaths.length != _mediaPaths.length ||
+        !_mediaPaths.every((p) => newPaths.contains(p))) {
+      setState(() => _mediaPaths = newPaths.toList());
+      _onContentChanged();
     }
   }
 
@@ -499,7 +525,11 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                 initialContent: _htmlContent,
                 onContentChanged: (content) {
                   _htmlContent = content;
+                  _syncMediaPathsFromContent(content);
                   _onContentChanged();
+                },
+                onFormatStateChanged: (states) {
+                  setState(() => _formatState = states);
                 },
                 onControllerReady: (controller) {
                   setState(() => _webController = controller);
@@ -878,21 +908,25 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                   icon: Icons.format_bold_rounded,
                   onTap: () => _execCommand('bold'),
                   tooltip: 'Bold',
+                  isActive: _formatState['bold'] == true,
                 ),
                 _ToolbarBtn(
                   icon: Icons.format_italic_rounded,
                   onTap: () => _execCommand('italic'),
                   tooltip: 'Italic',
+                  isActive: _formatState['italic'] == true,
                 ),
                 _ToolbarBtn(
                   icon: Icons.format_underlined_rounded,
                   onTap: () => _execCommand('underline'),
                   tooltip: 'Underline',
+                  isActive: _formatState['underline'] == true,
                 ),
                 _ToolbarBtn(
                   icon: Icons.strikethrough_s_rounded,
                   onTap: () => _execCommand('strikeThrough'),
                   tooltip: 'Strikethrough',
+                  isActive: _formatState['strikeThrough'] == true,
                 ),
                 _toolbarDivider(),
 
@@ -900,14 +934,17 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                 _HeadingBtn(
                   label: 'H1',
                   onTap: () => _execCommand('formatBlock', 'h1'),
+                  isActive: _formatState['h1'] == true,
                 ),
                 _HeadingBtn(
                   label: 'H2',
                   onTap: () => _execCommand('formatBlock', 'h2'),
+                  isActive: _formatState['h2'] == true,
                 ),
                 _HeadingBtn(
                   label: 'H3',
                   onTap: () => _execCommand('formatBlock', 'h3'),
+                  isActive: _formatState['h3'] == true,
                 ),
                 _HeadingBtn(
                   label: '¶',
@@ -920,16 +957,19 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                   icon: Icons.format_list_bulleted_rounded,
                   onTap: () => _execCommand('insertUnorderedList'),
                   tooltip: 'Bullet List',
+                  isActive: _formatState['unorderedList'] == true,
                 ),
                 _ToolbarBtn(
                   icon: Icons.format_list_numbered_rounded,
                   onTap: () => _execCommand('insertOrderedList'),
                   tooltip: 'Numbered List',
+                  isActive: _formatState['orderedList'] == true,
                 ),
                 _ToolbarBtn(
                   icon: Icons.format_quote_rounded,
                   onTap: () => _execCommand('formatBlock', 'blockquote'),
                   tooltip: 'Quote',
+                  isActive: _formatState['blockquote'] == true,
                 ),
                 _toolbarDivider(),
 
@@ -938,16 +978,19 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
                   icon: Icons.format_align_left_rounded,
                   onTap: () => _execCommand('justifyLeft'),
                   tooltip: 'Align Left',
+                  isActive: _formatState['justifyLeft'] == true,
                 ),
                 _ToolbarBtn(
                   icon: Icons.format_align_center_rounded,
                   onTap: () => _execCommand('justifyCenter'),
                   tooltip: 'Center',
+                  isActive: _formatState['justifyCenter'] == true,
                 ),
                 _ToolbarBtn(
                   icon: Icons.format_align_right_rounded,
                   onTap: () => _execCommand('justifyRight'),
                   tooltip: 'Align Right',
+                  isActive: _formatState['justifyRight'] == true,
                 ),
                 _toolbarDivider(),
 
@@ -1003,6 +1046,7 @@ class _ToolbarBtn extends StatelessWidget {
   final String tooltip;
   final bool isAccent;
   final Color? accentColor;
+  final bool isActive;
 
   const _ToolbarBtn({
     required this.icon,
@@ -1010,28 +1054,38 @@ class _ToolbarBtn extends StatelessWidget {
     required this.tooltip,
     this.isAccent = false,
     this.accentColor,
+    this.isActive = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        accentColor ??
-        (isAccent ? const Color(0xFF111111) : const Color(0xFF6B7280));
-    final bgColor = isAccent
-        ? (accentColor ?? const Color(0xFF111111)).withValues(alpha: 0.08)
+    final activeAccent = accentColor ?? const Color(0xFF6366F1);
+    final color = isActive
+        ? activeAccent
+        : (accentColor ??
+              (isAccent ? const Color(0xFF111111) : const Color(0xFF6B7280)));
+    final bgColor = isActive
+        ? activeAccent.withValues(alpha: 0.12)
+        : (isAccent
+              ? (accentColor ?? const Color(0xFF111111)).withValues(alpha: 0.08)
+              : Colors.transparent);
+    final borderColor = isActive
+        ? activeAccent.withValues(alpha: 0.25)
         : Colors.transparent;
 
     return Tooltip(
       message: tooltip,
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
           width: 36,
           height: 36,
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: borderColor, width: 1),
           ),
           child: Icon(icon, size: 20, color: color),
         ),
@@ -1043,25 +1097,43 @@ class _ToolbarBtn extends StatelessWidget {
 class _HeadingBtn extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
+  final bool isActive;
 
-  const _HeadingBtn({required this.label, required this.onTap});
+  const _HeadingBtn({
+    required this.label,
+    required this.onTap,
+    this.isActive = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final color = isActive ? const Color(0xFF6366F1) : const Color(0xFF6B7280);
+    final bgColor = isActive
+        ? const Color(0xFF6366F1).withValues(alpha: 0.12)
+        : Colors.transparent;
+    final borderColor = isActive
+        ? const Color(0xFF6366F1).withValues(alpha: 0.25)
+        : Colors.transparent;
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         width: 32,
         height: 36,
         margin: const EdgeInsets.symmetric(horizontal: 2),
         alignment: Alignment.center,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: borderColor, width: 1),
+        ),
         child: Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFF6B7280),
+            fontWeight: isActive ? FontWeight.w800 : FontWeight.w700,
+            color: color,
             fontFamily: 'Bricolage',
           ),
         ),

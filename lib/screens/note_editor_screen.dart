@@ -223,7 +223,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
         '''
       <div class="media-container" contenteditable="false">
         <img src="$fileUrl" style="max-width:100%;border-radius:12px;" />
-        <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
+        <button class="asset-delete-btn" onclick="(function(btn){btn.parentElement.remove();try{FlutterBridge.postMessage(editor.innerHTML);}catch(e){}})(this);">×</button>
       </div><br>
     ''';
     setState(() => _mediaPaths.add(savedPath));
@@ -238,7 +238,7 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
         '''
       <div class="media-container" contenteditable="false">
         <video src="$fileUrl" controls style="max-width:100%;border-radius:12px;"></video>
-        <button class="asset-delete-btn" onclick="this.parentElement.remove();">×</button>
+        <button class="asset-delete-btn" onclick="(function(btn){btn.parentElement.remove();try{FlutterBridge.postMessage(editor.innerHTML);}catch(e){}})(this);">×</button>
       </div><br>
     ''';
     setState(() => _mediaPaths.add(savedPath));
@@ -252,9 +252,8 @@ class _NoteEditorScreenState extends State<NoteEditorScreen>
     final audioHtml =
         '''
       <div class="audio-recording" contenteditable="false">
-        <audio src="$fileUrl" controls style="width:100%;">
-          <button class="asset-delete-btn" onclick="this.parentElement.remove();" style="position:relative;top:auto;right:auto;width:24px;height:24px;font-size:14px;flex-shrink:0;">×</button>
-        </audio>
+        <audio src="$fileUrl" controls style="width:100%;"></audio>
+        <button class="asset-delete-btn" onclick="(function(btn){btn.parentElement.remove();try{FlutterBridge.postMessage(editor.innerHTML);}catch(e){}})(this);" style="position:relative;top:auto;right:auto;width:24px;height:24px;font-size:14px;flex-shrink:0;">×</button>
       </div><br>
     ''';
     setState(() => _mediaPaths.add(savedPath));

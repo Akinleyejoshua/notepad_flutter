@@ -267,6 +267,7 @@ class _WebViewEditorState extends State<WebViewEditor> {
 
   /* Audio recording embed */
   .audio-recording {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 12px;
